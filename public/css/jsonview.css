@@ -1,0 +1,83 @@
+body {
+  white-space: pre;
+  font-family: monospace;
+}
+
+.property {
+  font-weight: bold;
+}
+
+.type-null {
+  color: gray;
+}
+
+.type-boolean {
+  color: firebrick;
+}
+
+.type-number {
+  color: blue;
+}
+
+.type-string {
+  color: green;
+}
+
+.callback-function {
+  color: gray;
+}
+
+.collapser:after {
+  content: "-";
+}
+
+.collapsed > .collapser:after {
+  content: "+";
+}
+
+.ellipsis:after {
+  content: " … ";
+}
+
+.collapsible {
+  margin-left: 2em;
+}
+
+.hoverable {
+  padding-top: 1px;
+  padding-bottom: 1px;
+  padding-left: 2px;
+  padding-right: 2px;
+  border-radius: 2px;
+}
+
+.hovered {
+  background-color: rgba(235, 238, 249, 1);  
+}
+
+.collapser {
+  padding-right: 6px;
+  padding-left: 6px;
+}
+
+.tab-nav {
+    background-color: transparent;
+    border: none;
+    outline: transparent;
+    border-bottom: 2px solid white;
+    width: 70px;
+    font-weight: 600;
+}
+.tab-nav:focus {
+  border-bottom: 2px dashed lightblue;
+}
+.tab-nav.selected-tab {
+  background-color: transparent;
+  border-bottom: 2px solid lightblue;
+}
+.tab-view {
+  display: none;
+}
+.tab-view.selected-tab {
+  display: block;
+}

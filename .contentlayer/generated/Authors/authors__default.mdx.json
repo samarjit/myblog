@@ -1,0 +1,33 @@
+{
+  "name": "Samarjit Samanta",
+  "avatar": "/static/images/avatar.png",
+  "occupation": "Software Consultatnt",
+  "company": "Accenture",
+  "email": "samarjit.samanta@gmail.com",
+  "twitter": "https://x.com/samarjitsamanta",
+  "linkedin": "https://www.linkedin.com/in/samarjit-samanta-a723a811/",
+  "github": "https://github.com/samarjit\r",
+  "body": {
+    "raw": "\r\nSamarjit Samanta is a wandering soul for all things technology. He likes to\r\nexperiment with javascript, java, react, electronics, Ai. Sometimes when he is too stressed up he paints.\r\n",
+    "code": "var Component=(()=>{var u=Object.create;var i=Object.defineProperty;var h=Object.getOwnPropertyDescriptor;var j=Object.getOwnPropertyNames;var w=Object.getPrototypeOf,x=Object.prototype.hasOwnProperty;var d=(t,a)=>()=>(a||t((a={exports:{}}).exports,a),a.exports),g=(t,a)=>{for(var n in a)i(t,n,{get:a[n],enumerable:!0})},r=(t,a,n,s)=>{if(a&&typeof a==\"object\"||typeof a==\"function\")for(let e of j(a))!x.call(t,e)&&e!==n&&i(t,e,{get:()=>a[e],enumerable:!(s=h(a,e))||s.enumerable});return t};var f=(t,a,n)=>(n=t!=null?u(w(t)):{},r(a||!t||!t.__esModule?i(n,\"default\",{value:t,enumerable:!0}):n,t)),S=t=>r(i({},\"__esModule\",{value:!0}),t);var c=d((y,m)=>{m.exports=_jsx_runtime});var v={};g(v,{default:()=>l,frontmatter:()=>_});var o=f(c()),_={name:\"Samarjit Samanta\",avatar:\"/static/images/avatar.png\",occupation:\"Software Consultatnt\",company:\"Accenture\",email:\"samarjit.samanta@gmail.com\",twitter:\"https://x.com/samarjitsamanta\",linkedin:\"https://www.linkedin.com/in/samarjit-samanta-a723a811/\",github:\"https://github.com/samarjit\"};function p(t){let a={p:\"p\",...t.components};return(0,o.jsx)(a.p,{children:\"Samarjit Samanta is a wandering soul for all things technology. He likes to experiment with javascript, java, react, electronics, Ai. Sometimes when he is too stressed up he paints.\"})}function l(t={}){let{wrapper:a}=t.components||{};return a?(0,o.jsx)(a,{...t,children:(0,o.jsx)(p,{...t})}):p(t)}return S(v);})();\n;return Component;"
+  },
+  "_id": "authors/default.mdx",
+  "_raw": {
+    "sourceFilePath": "authors/default.mdx",
+    "sourceFileName": "default.mdx",
+    "sourceFileDir": "authors",
+    "contentType": "mdx",
+    "flattenedPath": "authors/default"
+  },
+  "type": "Authors",
+  "readingTime": {
+    "text": "1 min read",
+    "minutes": 0.145,
+    "time": 8700,
+    "words": 29
+  },
+  "slug": "default",
+  "path": "authors/default",
+  "filePath": "authors/default.mdx",
+  "toc": []
+}
