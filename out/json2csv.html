@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="keywords" content="convert json to csv">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-CKY54F98QE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-CKY54F98QE');
+</script>
+
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.9/jquery.csv.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/json2csv/5.0.0/json2csv.umd.min.js"></script>
+	<link rel="stylesheet" href="css/bootstrap.css" />
+<style>
+body {
+    font-family:  sans-serif;
+	
+	min-height: 2000px;
+	padding-top: 70px;
+}
+#outputCsv td {
+    border-left: 1px solid grey
+}
+#outputCsv tr:first-child td {
+    border-bottom: 1px solid grey;
+    font-weight: bolder;
+}
+</style>
+    <script>
+    
+
+/**
+ * Convenience wrapper around the api.
+ * Calls `.get` when called with an `object` and a `pointer`.
+ * Calls `.set` when also called with `value`.
+ * If only supplied `object`, returns a partially applied function, mapped to the object.
+ *
+ * @param {Object} obj
+ * @param {String|Array} pointer
+ * @param value
+ * @returns {*}
+ */
+
+function api (obj, pointer, value) {
+    // .set()
+    if (arguments.length === 3) {
+        return api.set(obj, pointer, value);
+    }
+    // .get()
+    if (arguments.length === 2) {
+        return api.get(obj, pointer);
+    }
+    // Return a partially applied function on `obj`.
+    var wrapped = api.bind(api, obj);
+
+    // Support for oo style
+    for (var name in api) {
+        if (api.hasOwnProperty(name)) {
+            wrapped[name] = api[name].bind(wrapped, obj);
+        }
+    }
+    return wrapped;
+}
+
+
+/**
+ * Lookup a json pointer in an object
+ *
+ * @param {Object} obj
+ * @param {String|Array} pointer
+ * @returns {*}
+ */
+api.get = function get (obj, pointer) {
+    var refTokens = Array.isArray(pointer) ? pointer : api.parse(pointer);
+
+    for (var i = 0; i < refTokens.length; ++i) {
+        var tok = refTokens[i];
+        if (!(typeof obj == 'object' && tok in obj)) {
+            throw new Error('Invalid reference token: ' + tok);
+        }
+        obj = obj[tok];
+    }
+    return obj;
+};
+
+/**
+ * Sets a value on an object
+ *
+ * @param {Object} obj
+ * @param {String|Array} pointer
+ * @param value
+ */
+api.set = function set (obj, pointer, value) {
+    var refTokens = Array.isArray(pointer) ? pointer : api.parse(pointer),
+      nextTok = refTokens[0];
+
+    for (var i = 0; i < refTokens.length - 1; ++i) {
+        var tok = refTokens[i];
+        if (tok === '-' && Array.isArray(obj)) {
+          tok = obj.length;
+        }
+        nextTok = refTokens[i + 1];
+
+        if (!(tok in obj)) {
+            if (nextTok.match(/^(\d+|-)$/)) {
+                obj[tok] = [];
+            } else {
+                obj[tok] = {};
+            }
+        }
+        obj = obj[tok];
+    }
+    if (nextTok === '-' && Array.isArray(obj)) {
+      nextTok = obj.length;
+    }
+    obj[nextTok] = value;
+    return this;
+};
+
+/**
+ * Removes an attribute
+ *
+ * @param {Object} obj
+ * @param {String|Array} pointer
+ */
+api.remove = function (obj, pointer) {
+    var refTokens = Array.isArray(pointer) ? pointer : api.parse(pointer);
+    var finalToken = refTokens[refTokens.length -1];
+    if (finalToken === undefined) {
+        throw new Error('Invalid JSON pointer for remove: "' + pointer + '"');
+    }
+
+    var parent = api.get(obj, refTokens.slice(0, -1));
+    if (Array.isArray(parent)) {
+      var index = +finalToken;
+      if (finalToken === '' && isNaN(index)) {
+        throw new Error('Invalid array index: "' + finalToken + '"');
+      }
+
+      Array.prototype.splice.call(parent, index, 1);
+    } else {
+      delete parent[finalToken];
+    }
+};
+
+/**
+ * Returns a (pointer -> value) dictionary for an object
+ *
+ * @param obj
+ * @param {function} descend
+ * @returns {}
+ */
+api.dict = function dict (obj, descend) {
+    var results = {};
+    api.walk(obj, function (value, pointer) {
+        results[pointer] = value;
+    }, descend);
+    return results;
+};
+
+/**
+ * Iterates over an object
+ * Iterator: function (value, pointer) {}
+ *
+ * @param obj
+ * @param {function} iterator
+ * @param {function} descend
+ */
+api.walk = function walk (obj, iterator, descend) {
+    var refTokens = [];
+
+    descend = descend || function (value) {
+        var type = Object.prototype.toString.call(value);
+        return type === '[object Object]' || type === '[object Array]';
+    };
+
+    (function next (cur) {
+        for (key in cur) {
+            if (cur.hasOwnProperty(key)) {
+                const value = cur[key];
+                refTokens.push(String(key));
+                if (descend(value)) {
+                    next(value);
+                } else {
+                    iterator(value, api.compile(refTokens));
+                }
+                refTokens.pop();
+            }
+        };
+    }(obj));
+};
+
+/**
+ * Tests if an object has a value for a json pointer
+ *
+ * @param obj
+ * @param pointer
+ * @returns {boolean}
+ */
+api.has = function has (obj, pointer) {
+    try {
+        api.get(obj, pointer);
+    } catch (e) {
+        return false;
+    }
+    return true;
+};
+
+/**
+ * Escapes a reference token
+ *
+ * @param str
+ * @returns {string}
+ */
+api.escape = function escape (str) {
+    return str.toString().replace(/~/g, '~0').replace(/\//g, '~1');
+};
+
+/**
+ * Unescapes a reference token
+ *
+ * @param str
+ * @returns {string}
+ */
+api.unescape = function unescape (str) {
+    return str.replace(/~1/g, '/').replace(/~0/g, '~');
+};
+
+/**
+ * Converts a json pointer into a array of reference tokens
+ *
+ * @param pointer
+ * @returns {Array}
+ */
+api.parse = function parse (pointer) {
+    if (pointer === '') { return []; }
+    if (pointer.charAt(0) !== '/') { throw new Error('Invalid JSON pointer: ' + pointer); }
+    return pointer.substring(1).split(/\//).map(api.unescape);
+};
+
+/**
+ * Builds a json pointer from a array of reference tokens
+ *
+ * @param refTokens
+ * @returns {string}
+ */
+api.compile = function compile (refTokens) {
+    if (refTokens.length === 0) { return ''; }
+    return '/' + refTokens.map(api.escape).join('/');
+};
+
+</script>
+</head>
+<body>
+    <script>
+var allPointerObj = {
+   "/firstPublishedAt": "2019-12-16T18:49:26.141Z",
+   "/lastUpdatedState": "live",
+   "/displayName": "4-month prepay(Gotta Have It)",
+   "/descriptionsByKey/0/key": "att.com",
+   "/descriptionsByKey/0/value": "4-month prepay(Gotta Have It)",
+   "/clearRejections": false,
+   "/billingCode": "OF_ATVOMG4MV2",
+   "/billingId": "7517906219",
+   "/endDate": "9999-12-30T18:30:00.000Z",
+   "/environment": "",
+   "/offerProductFamily/0": "OTT",
+   "/eligibility/0/businessSegment/0": "CONS",
+   "/eligibility/0/salesChannelEligibility/0": "online",
+   "/eligibility/0/salesChannelEligibility/1": "onlineSales",
+   "/eligibility/0/salesChannelEligibility/2": "onlineServices",
+   "/eligibility/0/salesChannelEligibility/3": "opus",
+   "/eligibility/0/salesChannelEligibility/4": "opusSales",
+   "/eligibility/0/salesChannelEligibility/5": "opusServices",
+   "/offerPromos/0/promoId": "ATVOMG4MV2",
+   "/offerPromos/0/startDateStr": "03/29/2019",
+   "/offerPromos/0/endDateStr": "12/31/9999",
+   "/associatedProducts/0/qualifyingProducts/0/products/0/id": "fa3e6954-a8aa-4984-9efe-9803df9d8b27",
+   "/associatedProducts/0/qualifyingProducts/0/products/0/typeId": "product",
+   "/associatedProducts/0/qualifyingProducts/0/products/0/key": "TODO",
+   "/associatedProducts/0/qualifyingProducts/0/products/1/id": "b576100e-3c38-42ec-bac9-f480660d510e",
+   "/associatedProducts/0/qualifyingProducts/0/products/1/typeId": "product",
+   "/associatedProducts/0/qualifyingProducts/0/products/1/key": "TODO",
+   "/associatedProducts/0/qualifyingProducts/0/productFamily": "OTT",
+   "/migratedOffer": true,
+   "/isPrimary": true,
+   "/approvalComments-ProductMarketing": "pending",
+   "/approvalComments-OTTAcqMkt": "pending",
+   "/approvalComments-OTTRetentionMkt": "pending",
+   "/approvalComments-SuppliersPayments": "pending",
+   "/approvalComments-Finance": "pending",
+   "/approvalComments-OpusSales": "pending",
+   "/approvalComments-OpusServices": "pending",
+   "/approvalComments-OnlineSales": "pending",
+   "/approvalComments-OnlineServices": "pending",
+   "/approvalComments-Biller": "pending",
+   "/approvalComments-MarketingOperations": "pending",
+   "/approvalComments-ConsumerOnlineSales": "pending",
+   "/approvalComments-CPOP": "pending",
+   "/eligibilityBusinessSegment/0": "CONS",
+   "/eligibilitySalesChannels/0": "online",
+   "/eligibilitySalesChannels/1": "onlineSales",
+   "/eligibilitySalesChannels/2": "onlineServices",
+   "/eligibilitySalesChannels/3": "opus",
+   "/eligibilitySalesChannels/4": "opusSales",
+   "/eligibilitySalesChannels/5": "opusServices",
+   "/qualifyingProductIds/0/id": "fa3e6954-a8aa-4984-9efe-9803df9d8b27",
+   "/qualifyingProductIds/0/typeId": "product",
+   "/qualifyingProductIds/0/key": "TODO",
+   "/qualifyingProductIds/1/id": "b576100e-3c38-42ec-bac9-f480660d510e",
+   "/qualifyingProductIds/1/typeId": "product",
+   "/qualifyingProductIds/1/key": "TODO",
+   "/qualifyingProductFamily/0": "OTT",
+   "/qualifyingProductsBillingProductCode/0": "BASE-OMG-201610",
+   "/qualifyingProductsBillingProductCode/1": "HARD-APPLETV4K-201711",
+   "/offerActionType/0": "Other",
+   "/offerProductType/0": "video-plan",
+   "/contractIndicator": "non-contract",
+   "/benefitBillingIds/0": "3842",
+   "/benefitBillingCodes/0": "ATVOMG4MV2"
+};
+
+let allPointer = Object.keys(allPointerObj);
+///--------------
+allPointer.map(i=> { 
+  let x = i.replace(/^\//,'').
+  replace(/\/id|\/typeId|\/key/,'');
+  y = x.replace(/\/(\d+)\//g,'[$1].');
+  return y;
+})
+///-------------
+console.log('allPointerObj', allPointerObj);
+// $(document).ready(() => {
+//     let dynChk = '';
+//     allPointer.forEach(prop => {
+//         let line = '';
+//         if(/\/[1-9]/.test(prop)) {
+//             return;
+//         } else if (/\/0\//.test(prop)) {
+//             let lineParts = prop.split(/\/0\//);
+//             lineParts.reduce((acc, propPart) => {
+//                 propSection = propPart.replace(/[\/0]/g,'');
+//                 acc.push(propSection);
+//                 line += `<label><input checked class="allchk" onmouseover='check(this)' type="checkbox" name="${acc.join('.')}"/> ${propSection}</label>`
+//                 return acc;
+//             },[]);
+//             line += '</br>';
+//         } else {
+//             const propName = prop.replace(/[\/0]/g,'[0]');
+//             line = `<label><input checked class="allchk" onmouseover='check(this)' type="checkbox" name="${propName}"/> ${propName}</label><br/>`
+//         }
+
+//         dynChk += line;
+//     });
+//     // $('#selection').html(dynChk);
+
+// });
+function readInput() {
+    const json = JSON.parse($('#inpObject').val());
+    allPointerObj = api.dict(json);
+    $('#selection').html(JSON.stringify(allPointerObj, null, 1));
+    let allPointer = Object.keys(allPointerObj);
+    function distinct (value, index, self) {
+        return self.indexOf(value) === index;
+    }
+
+    raw = allPointer.map(i=> { 
+        let x = i.replace(/^\//,'');
+        let y;
+        if (/id$|key$/.test(x)) {
+            let tobe = x.replace(/id$|key$/, 'typeId');
+            if (allPointer.find(j => j.includes(tobe))) {
+            y = x.replace(/\/id|\/typeId|\/key/,'');
+            }
+        } else if (/typeId$/.test(x)) {
+            let tobe = x.replace(/id$|key$/, 'id');
+            if (allPointer.find(j => j.includes(tobe))) {
+            y = x.replace(/\/id|\/typeId|\/key/,'');
+            }
+        }
+        y = (y || x).replace(/\/(\d+)\//g,'[$1].');
+        y = y.replace(/\/\d/,'');
+        return y;
+    });
+
+    const fld = raw.filter(distinct).map(i => i.replace(/\//g,'.'));
+    const unwind = fld.filter(i => /\w+\[\d+\]/.test(i))
+    .map(i => i.match(/(\w+)\[\d\]/)[1]);
+    const distinctUnwind = unwind.filter(distinct);
+
+    $('#preview').val(JSON.stringify(fld, null, 1));
+    $('#previewUnwind').val(JSON.stringify([], null, 1));
+}
+function check(box) {
+    if (mouseDown) {
+        box.checked = 1-box.checked;
+        // box.checked = 1;
+        // ^ If you only want to turn them on, use this.
+    }
+
+    let lst = [];
+    $(':checked').each((i,el) => lst.push(el.name));
+    let fields = [];
+    let expand = [];
+    lst.forEach(ls => {
+        if(ls.indexOf('.') > -1) {
+            expand.push(ls);
+        }
+        fields.push(ls);
+    });
+
+    
+}
+
+function parsePrint() {
+    let data =  [JSON.parse($('#inpObject').val())];
+    const par = new json2csv.Parser({
+    fields: JSON.parse($('#preview').val()),
+    unwind: JSON.parse($('#previewUnwind').val()),
+    unwindBlank: false,
+  });
+  const result = par.parse(data);
+  $('#output').html(result);
+  const arOfAr = $.csv.toArrays(result);
+//   $('#outputCsv').CSVToTable(result);
+    $('#outputCsv').empty();
+  let tabOp = $('#outputCsv')[0];
+  for (let rowData of arOfAr) {
+    let rowH = tabOp.insertRow();
+    for (let cellData of rowData) {
+        let cellH = rowH.insertCell();
+        cellH.innerHTML = cellData;
+    }
+  }
+  
+}
+
+var mouseDown = 0;
+document.body.onmousedown = function() {++mouseDown;}
+document.body.onmouseup = function()  {--mouseDown;}
+    </script>
+	<article class="container"> 
+	<div class="navbar navbar-default navbar-fixed-top" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+		            <span class="sr-only">Toggle navigation</span>
+		            <span class="icon-bar"></span>
+		            <span class="icon-bar"></span>
+		            <span class="icon-bar"></span>
+		          </button>
+				<a class="navbar-brand"  href="index.html">Index</a>
+				<a class="navbar-brand"  href="jsonview.html">Json View</a>
+			</div>
+			<div class="collapse  navbar-collapse">
+				<ul class="nav navbar-nav">
+					<li></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+    <h2>Json Object to CSV</h2>
+    <div>Utility for determining <i>fields</i>, and <i>unwind</i> parameters for any json.
+        Utilizing the below two library.
+        <ol>
+            <li>json-pointer for reading all possible paths</li>
+            <li>json2csv for converting the all possible paths to csv</li>
+        </ol> 
+        <div>All leaf node arrays can be converted to be comma separated,
+            but I left that as it is so that serialization back to json will work</div>
+    </div> <br/>
+    <textarea name="inpObject" id="inpObject" style="width:100%" rows="10"  placeholder="Paste json here">{
+            "data1": {
+               "name": "samarjit",
+               "dob": "D-M-Y",
+               "email": "test@email.com",
+               "address": [
+                  {
+                     "type": "office address",
+                     "street": "One raffles Quay"
+                  },
+                  {
+                     "type": "home address",
+                     "street": "Farrer Road"
+                  }
+               ]
+            },
+            "data2": {
+               "name": "samarjit",
+               "dob": "D-M-Y",
+               "email": "test@email.com",
+               "address": [
+                  {
+                     "type": "office address",
+                     "street": "One raffles Quay"
+                  },
+                  {
+                     "type": "home address",
+                     "street": "Farrer Road"
+                  }
+               ]
+            }
+         }</textarea> <br/>
+    <button type="button" onclick="readInput()">Read Input</button>
+    <pre id="selection">Json pointer results appears here
+    </pre>
+    <section>
+        <aside style="float:left;width:48%">
+            json2csv - fields configuration
+            <textarea id="preview" style="width:100%" rows="20"></textarea>
+        </aside>
+        <aside style="float:left;width:2%">&nbsp;</aside>
+        <aside style="float:left;width:48%">
+            json2csv - unwind configuration
+            <textarea id="previewUnwind" style="width:100%" rows="20"></textarea>
+        </aside>
+    </section>
+    <section style="clear:both"></section>
+    <button type="button" onclick="parsePrint()" style="clear:both">Preview</button>
+    <br/>
+    <h3>CSV</h3>
+    <pre id="output"></pre>
+    <br/><br/>
+    <h3>CSV in tabular format</h3>
+    <table id="outputCsv" ></table>
+	</article>
+</body>
+</html>
