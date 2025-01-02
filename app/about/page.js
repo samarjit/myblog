@@ -4,6 +4,7 @@ import { MDXLayoutRenderer } from 'pliny/mdx-components'
 import { coreContent } from 'pliny/utils/contentlayer'
 import { genPageMetadata } from 'app/seo'
 import SocialIcon from '@/components/social-icons'
+import { components } from '@/components/MDXComponents'
 import Image from 'next/image'
 
 export const metadata = genPageMetadata({ title: 'About' })
@@ -46,7 +47,7 @@ export default function Page() {
             </div>
           </div>
           <div className="prose max-w-none pb-8 pt-8 dark:prose-invert xl:col-span-2">
-        <MDXLayoutRenderer code={author.body.code} />
+        <MDXLayoutRenderer code={author.body.code} components={components} />
       </div>
       </div>
       </div>

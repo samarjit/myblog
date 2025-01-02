@@ -1,0 +1,205 @@
+---
+title: Naive react
+date: 2019-03-17
+tags: ['react','javacript','Simple React','jsx','typescript']
+summary: With just 98 lines of code we can achieve a jsx rendering + events + render subtrees without any external dependencies.
+---
+> Update: From React 17+ JSX transformation will no longer create React.createElement() instead it will be _jsx()!
+
+If JSX becomes a standard of EcmaScript ES-XXXX, we will have an amazing tool at our disposal. Even if we do not want full blown react in our application, lets see how far we can go about using its render functions.
+
+Good news is TypeScript natively supports jsx now. It is also possible to compile jsx with babel without React js. The output javascript contains  `React.createElement()`. In this project, I am trying to implement this createElement() to render dom tree. Initial render is quite simple. But it getscomplicated to handle rerender where children nodes need to be tracked and replaced. This was achieved in stage 2.
+
+To run the project.
+
+1.  `npm install`
+2.  `npm run build`  -- This will compile all jsx and concatenate using browserify in the dist folder.
+3.  Open the index.html from dist folder in a browser. Alternatively run  `http-server`  to serve static files from dist directory
+
+-   Note: This is a work in progress
+
+# Stage 1
+
+We have a simple render logic that traverses the nodes through render functions and generates dom. It is simple template rendering.
+
+## There is no way to rerender onlysubtrees.
+
+If I go with virtual dom path there is no need to rerender subtrees as it will be always full render and virtual dom diff will take care. And then dom patch will be done as in traditional react.
+
+## There is no way to know which subtree needs to be rerendered.
+
+One way is to make the state,props as observables and we can figure out if it requires rerender. Probably this is how angular1 was built. The rerender also cannot patch the dom since there is no marker to tell which node is being referred by the current component, so that the subtree can be replaced. Also I am starting to ponder what happens if the child subtree contains a form, all user’s selection will be lost. So singleton will be required, but singleton instance must be created per unique node. Once created those instances are created, those needs to be reused otherwise state data will be lost.
+
+We may have to go with synthetic events for 2 reasons.
+
+1.  To be able to cleanup without memory leaking.
+2.  To know if rerender is required if there is an event.
+
+# Some stage1 code
+
+I defined a button component, and a bootstrapping class App.tsx. Both are pretty much similar to what you would do in actual reactjs application. I will explain about the import statement in a minute. But rest of the code is exactly like plain reactjs.
+
+```
+import React from './DummyReact';export default class MyButton {  
+  state: any;  
+  constructor() {  
+    this.state = {count: 0};  
+    this.clickHandler = this.clickHandler.bind(this);  
+  }  
+  clickHandler() {  
+    console.log('Button clicked');  
+    this.state.count += 1;   
+  };  
+  render() {  
+    return (<div>  
+        {this.state.count}  
+        <button onClick={this.clickHandler}>button text</button>  
+    </div>);  
+  }  
+}
+```
+
+And the bootstrapping part goes like this. This is also plain reactjs.
+
+```
+import React from './DummyReact';  
+import MyButton from './MyButton';class App {  
+  render(): any {  
+    return (<div>Hello <MyButton/></div>);  
+  }  
+}React.renderRoot(<App/>, document.getElementById('root'));
+```
+
+Now what does it take to render these above snippets. We know that jsx gets compiled into plain javascript. Lets look at what it gets compiled into.
+
+MyButton.tsx get compiled into below snippet.
+
+```
+Object.defineProperty(exports, "__esModule", { value: true });  
+var NaiveReact_1 = require("./DummyReact");  
+var MyButton = /** [@class](http://twitter.com/class) */ (function () {  
+  function MyButton() {  
+    this.state = { count: 0 };  
+    this.clickHandler = this.clickHandler.bind(this);  
+  }  
+  MyButton.prototype.clickHandler = function () {  
+    console.log('Button clicked!');  
+    this.state.count += 1;  
+    NaiveReact_1.default.forceRender(this);  
+  };  
+  ;  
+  MyButton.prototype.render = function () {  
+    return (NaiveReact_1.default.createElement("div", null,  
+    this.state.count,  
+    NaiveReact_1.default.createElement("button", { onClick: this.clickHandler }, "button text")));  
+  };  
+  return MyButton;  
+}());  
+exports.default = MyButton;
+```
+
+The app.tsx looks like this below snippet.
+
+```
+Object.defineProperty(exports, "__esModule", { value: true });  
+var NaiveReact_1 = require("./DummyReact");  
+var MyButton_1 = require("./MyButton");  
+var App = /** [@class](http://twitter.com/class) */ (function () {  
+  function App() {  
+  }  
+  App.prototype.render = function () {  
+    return (NaiveReact_1.default.createElement("div", null,  
+    "Hello ",  
+    NaiveReact_1.default.createElement(MyButton_1.default, null),  
+    NaiveReact_1.default.createElement(MyButton_1.default, null)));  
+  };  
+  return App;  
+}());  
+NaiveReact_1.default.renderRoot(NaiveReact_1.default.createElement(App, null), document.getElementById('root'));
+```
+By seeing the above compiled code, you will notice that JSX automatically assumes that it has to convert those tags into  `React.createElement()`  static functions. For this reason we have to stick with this  `React`  keyword. But we will provide our own implementation that will traverse this render functions tree calling each other until the dom is rendered. That is exactly what is done in this below 46 lines code on DummyReact.ts.
+
+DummyReact.ts
+
+```
+export default class DummyReact{static singletonRegistry = {};  
+  static getInstance(tagName: any) {   
+      return new tagName();  
+  }  
+  static createElement(tagName: any, attrs:{[x: string]: any}, ...children) {  
+    let elm;  
+    if(typeof(tagName) === 'function'){  
+      elm = DummyReact.getInstance(tagName).render();  
+    } else {  
+      elm = document.createElement(tagName);  
+    }  
+    if(attrs) {  
+     for( var attr in attrs) {  
+          
+      if(/on\w+/.test(attr)) {  
+        let eventName = attr.replace(/^on/,'');  
+        eventName = eventName.charAt(0).toLocaleLowerCase() + eventName.substr(1);  
+        elm.addEventListener(eventName, attrs[attr]);  
+      } else {  
+        elm.setAttribute(attr, attrs[attr]);  
+      }  
+     };  
+    } if(children) {  
+      children.forEach((child) => {  
+        if(typeof child === 'string' || typeof child === 'number') {  
+          elm.innerHTML = elm.innerHTML + child;  
+        } else {  
+          // assume it is a function; perhaps a function createElement(..)  
+          elm.appendChild(child);  
+        }  
+      });  
+    }  
+    return elm;  
+  } static renderRoot(obj, rootElement) {  
+    for(var element of rootElement.children) {  
+      rootElement.removeChild(element);  
+    };  
+    rootElement.appendChild( obj );  
+  }  
+};
+```
+
+You can see a working version right here.
+
+# Stage 2
+
+I am focusing on two things for now.
+
+1.  I want to achieve without virtual-dom
+2.  Partial re-render of subtree. This will become our force render.
+3.  Be able to have Multiple instance of the same Component (Ex. MyButton being shown twice with two different counter values. Where counts are being stored within the Component)
+4.  Handle events from correct instance if multiple instances of a Custom Element is present. (Ex. Clicking MyButton in our case with trigger event of its correct instance)
+
+The solution was to have marker reference to each component instance in html node. This concept is similar to isolated scope in angularjs. Whenever any event is triggered the correct instance of the function gets called. We are having dom events listeners. Currently there is no synthetic event concept in our implementation. Also there is no global listening to events to autorender. So an explicit forceRender() is required to be called. From the instance which is called forceRender() the correct instance is identified and the relevant dom node is identified. Then the subtree is re-rendered.
+
+![](https://miro.medium.com/v2/resize:fit:700/1*2CK3UoTsC7LfvgNTIFq5_Q.png)
+
+Overall the implementation of Naive-React has only 3 important function.
+
+```
+export default class NaiveReact{ static appendRef(inst, elm, instNumber) {...} static createElement(tagName: any, attrs:{[x: string]: any}, ...children) { ... } static forceRender(comp) { ... }}
+```
+
+The entire implementation is less than 98 lines of code.
+
+[https://stackblitz.com/edit/naive-react?file=NaiveReact.ts](https://stackblitz.com/edit/naive-react?file=NaiveReact.ts)  
+[https://github.com/samarjit/naive-react/blob/master/src/NaiveReact.ts](https://github.com/samarjit/naive-react/blob/master/src/NaiveReact.ts).
+
+Live working implementation is shown below:
+
+# Conclusion
+
+With just 98 lines of code we can achieve a jsx rendering + events + render subtrees without any external dependencies. JSX is supported out of box in TypeScript which opens up this opportunities. I hope JSX is supported in EcmaScript in future. Today you can do so using babel. For a simple application where react will be overkill this is a viable template implementation.
+
+Future improvements can be done to implement synthetic events and which will pave the path for implementing auto-render. Feel free to fork and have fun!
+
+Links — What’s next lets build redux too —  [https://samarjit-samanta.medium.com/lets-build-naive-redux-159e3caa856b](https://samarjit-samanta.medium.com/lets-build-naive-redux-159e3caa856b)
+
+Next — probably I will build a router
+
+**Food for throught** — React keeps a virtual dom tree, and runs all components to create another dom tree, then find the diff, which results in a patch. Then apply this to browser. Now imagine if browser makers had to optimize. Start with HTML-A you make very slight modification to that html which creates HTML-B, and then apply the complete HTML-B to browser. Browsers then have to find the diff, create a patch and apply patch all written in highly optimized C/C++ code. I believe this business of diffing and patching should be left to browsers instead of using user-land virtual-dom js code to mess around! Let me know what you feel about it in comments.

@@ -1,0 +1,237 @@
+---
+title: Naive redux
+date: 2018-03-26
+tags: ['react','javacript','Simple React','jsx','typescript']
+summary: Lets build basic redux complete with redux devtools integration from scratch
+---
+
+![](https://miro.medium.com/v2/resize:fit:1000/1*HoYPs98h596XufXa0awLCA.gif)
+
+# Lets build redux from scratch — naive redux
+
+## TL:DR; We will build redux in about 60 lines of code and make it work with redux devtools. Take me straight to code:  [https://stackblitz.com/edit/react-ts-redux](https://stackblitz.com/edit/react-ts-redux)
+
+[](https://samarjit-samanta.medium.com/?source=post_page---byline--159e3caa856b--------------------------------)
+
+![samarjit.samanta](https://miro.medium.com/v2/resize:fill:44:44/0*3LyY21ZP8iY4sLLL.jpg)
+
+[samarjit.samanta](https://samarjit-samanta.medium.com/?source=post_page---byline--159e3caa856b--------------------------------)
+
+5 min read
+
+·
+
+Mar 26, 2018
+
+Before we begin let us take a step back and think what is redux?
+
+It’s a store of data, you can update the store with some events and you can subscribe to stored data change events. Ofcourse you should not think of it as a pub-sub mechanism backed by a event data store. There is a subtle difference. The events which gets published do not get passed down to listeners.
+
+> _😖_ While writing this, I am pondering what will be the consequences if we really received those events back, may be we wont need reactive programming, food for thought!
+
+Lets get back to redux, it does update the stored data, and notify all subscribers that we have got new data in store. Up to this point I have explained what is within scope of redux. And after this, in a typical react application would have a special type of subscriber called `connect()`, which is a Higher Order Component (HOC) that read the store data and inject relevant parts of it into props of a react component. This `connect()` is part of react-redux project which is out of scope for our naive redux.
+
+# Let’s visualize
+
+![](https://miro.medium.com/v2/resize:fit:511/1*1JxavlPpsuz2jVXnv21GnQ.png)
+
+Redux skeleton
+
+Now lets get acquainted with some terminologies used in redux.
+
+Event data is `action`. Which typically contains type which is event name and payload. Eg. `{type: 'INCREMENT', payload: '1'}`.  
+Triggering event is called `dispatch()`  
+`Reducer` does the job of assimilating payload data into Data Store.  
+`Subscribe()` thankfully do not have strange nomenclature.
+
+# Blueprint
+
+Let’s create a skeleton of necessary functions.
+
+```
+class ReduxStore {  
+   storeState: any = undefined;  
+   reducers: Reducer[] = [];  
+   subscriptions: any[] = [];/* Initialize the store */  
+   createStore() {}  
+  /* provide a method for emitting events.   
+   And also process events and finally call subscribers*/  
+   dispatch() {}  
+  /* loops though reducers array and update storeState*/  
+   runReducers() {}  
+  /* register subscribers */  
+   subscribe() {}  
+  /* return current state */  
+   getState()  
+}
+```
+
+We can create a basic typescript project as follows.
+
+`create-react-app ts-redux --scripts-version=react-scripts-ts`
+
+First some boilerplate Types definitions since I am going to use TypeScript.
+
+```
+/** Naive Redux */  
+export interface Action<T = any> {  
+type: T;  
+}export interface AnyAction extends Action {  
+// Allows any extra properties to be defined in an action.      [extraProps: string]: any;  
+}export type Reducer<S = any, A extends Action = AnyAction> = (state: S | undefined, action: A) => S;
+```
+
+Then, the implementation of the blueprint. This is pretty much it.
+
+## CreateStore
+
+```
+createStore(reducer: Reducer, predefinedState?: any) {  
+     this.reducers.push(reducer);  
+     return this;  
+   }
+```
+
+What this function does is initialize the main store. It registers all the data manipulating reducers. You can write other methods to add more reducers. Like redux does with replace reducers. We also have to work with the predefinedStates. You can assign to storeState for now. If you want to capture the default argument value from the reducer. You can run the reducer once with undefined state and undefined action.
+
+## Dispatch
+
+```
+dispatch(action: AnyAction) {  
+     this.runReducers(action);  
+     for(const publish of this.subscriptions) {  
+       publish();  
+     }  
+   }  
+     
+runReducers(action: AnyAction) {  
+     for(const reducer of this.reducers) {  
+       const state = reducer(this.storeState, action);  
+       this.storeState = {...this.storeState, ...state};  
+     }  
+   }
+```
+
+This function does all the event handling once user calls dispatch. We have to run through all the reducers passing the current storeState. Assume that action is `{type: ‘INC’, payload: 1}`. So all the reducers that act on ‘INC’ action type will manipulate the state. Ideally it should do in an immutable way. So that we can compare the old and new state to determine whether the storeState actually changed or not. And then publish storeState changed only if there is some real change in store state after running the the reducers. But for simplicity sake we anyway call all the subscribers.
+
+The complete listing will look like this.
+
+```
+export class ReduxStore {  
+  storeState: any = undefined;  
+  reducers: Reducer[] = [];  
+  subscriptions: any[] = [];  
+  constructor() {  
+    this.createStore = this.createStore.bind(this);  
+    this.subscribe = this.subscribe.bind(this);  
+  }  
+  /* Initialize the store */  
+   createStore(reducer: Reducer, predefinedState?: any) {  
+     this.reducers.push(reducer);  
+     return this;  
+   }  
+  /* provide a method for emitting events.   
+   And also process events and finally call subscribers*/  
+   dispatch(action: AnyAction) {  
+     this.runReducers(action);  
+     for(const subs of this.subscriptions) {  
+       subs();  
+     }  
+   }  
+  /* loops though reducers array and update storeState*/  
+   runReducers(action: AnyAction) {  
+     for(const reducer of this.reducers) {  
+       const state = reducer(this.storeState, action);  
+       this.storeState = {...this.storeState, ...state};  
+     }  
+   }  
+  /* register subscribers */  
+   subscribe(fn: ()=>void) {  
+     this.subscriptions.push(fn);  
+   }  
+  getState(){  
+    return this.storeState;  
+  }   
+}   
+export const reduxStore = new ReduxStore();
+```
+
+Then use it like regular redux.
+
+## Create a reducer and store and subscribe to store:
+
+```
+function appReducer(state: {count: number} = { count: 1},   
+                    action: AnyAction){ switch(action.type) {  
+    case 'INC':   
+       return {...state, count: state.count + action.payload};  
+    case 'DEC':   
+       return {...state, count: state.count - action.payload};  
+    default: return state;  
+  }  
+}this.store = reduxStore.createStore(appReducer);this.store.subscribe( () => {  
+     console.log('Store:' + this.store.getState());  
+});
+```
+
+Dispatch actions to reduxStore. This is like publishing events.
+
+```
+this.store.dispatch({type: 'INC', payload: 1})
+```
+
+Output:
+
+```
+Store: 1  
+Store: 2
+```
+
+That’s all about redux. That wasn’t too difficult.
+
+## Oh wait. What if I can get chrome redux dev tools to work with my naive redux.
+
+Sure, just modify your createStore() with the below code. Original redux has a concept of middlewares. This middleware concept is used to inject redux devtools into our application.
+
+The first part is handling two overloaded createStore() function where predefinedState can be optional parameter.
+
+`enhancer()` function is similar to applyMiddleware() provided by a redux. Redux devtools can also use enhancer and run some instrumentation logic on reducers. Basically it takes our reducer and wraps it into a wrappedReducer. It then calls our createStore. So what we store in our reducers[] array is wrappedReducers. Now imagine in our dispatch() function we call wrappedReducer instead of real reducers. These wrapped reducers calls back our original reducers and then calls different action types for updating redux devtools. This is contrived explanation of what happens in redux devtools. Isn’t is amazing that with this little code even redux devtools start to work and even the replay functionality of devtools work.
+
+```
+createStore(reducer: Reducer, predefinedState: any, enhancer?: (fn: any) => any) {  
+        if(typeof(predefinedState) === 'function' ) {  
+            enhancer = predefinedState;  
+            predefinedState = undefined;  
+        }  
+        if (enhancer) {  
+            const fnRet = enhancer(this.createStore);  
+            return fnRet(reducer, predefinedState);  
+        }  
+        this.reducers.push(reducer);  
+        this.dispatch({type: '@@redux/INIT'});  
+        return this;  
+}
+```
+
+That is all required for simplified redux implementation.
+
+Posible Enhancement: We can improve one thing which is currently not present in redux. That is pass on events to the subscriber. Often times subscriber gets called multiple times and in this case subscriber can easily react to specific events only.
+
+```
+dispatch(action: AnyAction) {  
+     this.runReducers(action);  
+     for(const subs of this.subscriptions) {  
+       subs(action.type);  //Only this line requires changes  
+     }  
+   }
+```
+
+# Live running code
+
+Open redux devtools in chrome developers tools and connect with this app.
+
+# Conclusion
+
+I hope someone gets a better understanding about redux from this writeup.
+
+Links — Checkout if you want to build a framework like react  [https://samarjit-samanta.medium.com/naive-react-3d86ab64be84](https://samarjit-samanta.medium.com/naive-react-3d86ab64be84)

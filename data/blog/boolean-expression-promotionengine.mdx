@@ -1,0 +1,70 @@
+---
+title: Build Shopping Cart promotion engine with boolean expressions
+date: 2020-06-06
+tags: ['parser-generator','PEG-parser','compiler-design','promotion-engine']
+summary: Build a promotions evalution engine based on target and qualifiers defined via an expression language.
+---
+
+Build Shopping Cart promotion engine with boolean expressions
+samarjit.samanta
+samarjit.samanta
+
+3 min read
+·
+Jul 6, 2020
+
+
+
+
+
+Boolean expression parser as we built in the previous post is used to create a domain specific language DSL. In this post we will see how to evaluate such DSL. Here we modified the language slightly to make it fit for building a promotion engine. Under the hood, we are still going to use a PEG.js based grammar. If you are unclear about how to write basic grammar I highly recommend reading the previous post.
+
+A promotion needs to match a cart with several conditions satisfied. A very succinct way of defining all the conditions is to define it as a complex boolean expression. In this chapter we are going to look at how to evaluate such boolean expression. But lets first see how the expression might look like.
+
+> Expression
+> Promotion1:
+> 
+> Buy 2 iphone and get $400 off
+> productCount(productModel="IPHONE") > 1
+> 
+> Promotion2:
+> 
+> Buy any phone and a phone case and get $50 off
+> 
+> productExists(productType="PHONE" and price > 600) and productExists(productType="CASE")
+
+
+Lets breakdown the expression to see the concept behind it. Instead of calling these as regular functions lets call them as selector functions. The argument these functions take is basically a line-item selector. The function operates on the selected line-item. So productModel="IPHONE" is the line-item selector. This is not an assignment operation, the equal symbol is a logical equality checker. Left hand side is a property and right hand side is a constant with which the property is matched. This property is expected to be present in each line-item (context). So this expression can be evaluated on any context which has these properties productModel, productType and price.
+
+Context/Line-Item
+Lets create a context to evaluate the above expression.
+
+```
+Line 1: {"productType":"PHONE","productModel":"IPHONE","price":800}
+Line 2: {"productType":"CASE","productModel":"ClearCase","price":20}
+```
+Now let see how the above expressions should behave. For promotion1 to be satisfied two of the line-item must be a IPHONE. We have only one IPHONE in our context so the promotion1 should evaluate to false. For the promotion2 however any phone with price more than 600 should match line1. The second part is that one of the line-items must contain a CASE. So since both the conditions are matching promotion2 must should evaluate to true.
+
+Rules Engine
+The rules engine consists of expression tree traversal and start evaluation from the leaf nodes. Then as we go higher up in the tree combine the result from the level below and so on. Eventually at the end of traversal when you reach the root node you will have some boolean value left. That should be the result of the entire expression. Another way to look at it is, assume the expression tree to be a prefixed expression. Prefix expression evaluation seems to fit machines very well. Eg. ‘-AB’. read ‘-’ push it onto stack. After that machine knows how many variables to read before evaluation. For unary operator only one variable is required for binary two variables in this case ‘A’ and ‘B’.
+
+The selector function is context specific. In our case the selector portion knows how to iterate over the line-items, and pass each line-item for selector expression evaluation. This is how the pseudo code would look like
+
+```
+function evalRule(rule, context) {
+handle rule for primitive operators and context
+// recursively call child rules
+handle rule for nested operator. call evalRule(childRule, context)
+handle rule for selector functions
+     loop over context line-items
+        evalRule(selectorRule, line-items)
+        aggregate results based on type of function
+}
+```
+
+Interactive Example
+Finally lets see some interactive examples. You can make the changes to product line-items to match our promotion1, by adding another IPHONE line-item to the cart. Add to cart is simple, just select a product from product list and all selected products make up the cart.
+
+If you are interested further you can create your own promotion to match the line items, or match new line-items that you can create.
+
+

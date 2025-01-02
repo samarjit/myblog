@@ -1,0 +1,45 @@
+{
+  "title": "Old blogs from blogspot",
+  "date": "+020213-06-06T04:00:00.000Z",
+  "tags": [
+    "blogspot",
+    "javascript-frameworks",
+    "js-inheritance",
+    "struts2",
+    "hibernate"
+  ],
+  "summary": "A list of old blogspot articles\r",
+  "body": {
+    "raw": "\r\n-   [My learning of frameworks and js libs](http://javascriptcodeideas.blogspot.com/)\r\n-   [Cornucopia](http://samarjitsamanta.blogspot.com/)\r\n-   [Homemade Linux SBC](http://mylinuxsbc.blogspot.com/)\r\n-   [struts2 json plugin SMDAction simplified](http://struts2ideas.blogspot.com/)\r\n-   [TO_CHAR(SYSDATE,... HH24:MI:SS') for H2 database](http://dateconvertion.blogspot.com/)\r\n-   [RandomThoughts](http://consultforfree.blogspot.com/)\r\n-   [Build your own Javascript UI framework](http://javascriptui.blogspot.com/)\r\n-   [Stolen idea from John Resig's simple inheritance](http://javascriptstolenideas.blogspot.com/)\r\n-   [Javascript ui framework list](http://javascript-ui-list.blogspot.com/)\r\n-   [Javascript playground](http://javascripttidbits.blogspot.com/)\r\n-   [Javascript frameworks opinions](http://jsframeworkopinion.blogspot.com/)\r\nAh! old opinion, but I think react is pretty good framework now, followed by viewjs angular. I still think something simple that can be added to any website for minimal interactivity is still worthwhile to keep building. May be alpinejs or knockoutjs can fill this spot. May be the string template engine within vanilla javascript can be improved to .\r\n-   [Future...](http://inside-future.blogspot.com/)\r\n-   [Hadoop](http://cloudcomputing-hadoop.blogspot.com/)\r\n-   [Class Reloading Webapp](http://classreloadingwebapp.blogspot.com/)\r\n-   [Boolean expression compiler](http://expression-parser.blogspot.com/)\r\n-   [Java: Hibernate in one File](http://hibernateinafile.blogspot.com/)\r\n-   [struts2 action return arbritrary result class](http://struts2-custom-result-class.blogspot.com/)",
+    "code": "var Component=(()=>{var d=Object.create;var l=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var f=Object.getOwnPropertyNames;var u=Object.getPrototypeOf,b=Object.prototype.hasOwnProperty;var g=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports),j=(e,t)=>{for(var o in t)l(e,o,{get:t[o],enumerable:!0})},a=(e,t,o,n)=>{if(t&&typeof t==\"object\"||typeof t==\"function\")for(let r of f(t))!b.call(e,r)&&r!==o&&l(e,r,{get:()=>t[r],enumerable:!(n=m(t,r))||n.enumerable});return e};var v=(e,t,o)=>(o=e!=null?d(u(e)):{},a(t||!e||!e.__esModule?l(o,\"default\",{value:e,enumerable:!0}):o,e)),w=e=>a(l({},\"__esModule\",{value:!0}),e);var c=g((M,s)=>{s.exports=_jsx_runtime});var y={};j(y,{default:()=>p,frontmatter:()=>x});var i=v(c()),x={title:\"Old blogs from blogspot\",date:\"20213-06-06\",tags:[\"blogspot\",\"javascript-frameworks\",\"js-inheritance\",\"struts2\",\"hibernate\"],summary:\"A list of old blogspot articles\"};function h(e){let t={a:\"a\",li:\"li\",ul:\"ul\",...e.components};return(0,i.jsxs)(t.ul,{children:[(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://javascriptcodeideas.blogspot.com/\",children:\"My learning of frameworks and js libs\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://samarjitsamanta.blogspot.com/\",children:\"Cornucopia\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://mylinuxsbc.blogspot.com/\",children:\"Homemade Linux SBC\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://struts2ideas.blogspot.com/\",children:\"struts2 json plugin SMDAction simplified\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://dateconvertion.blogspot.com/\",children:\"TO_CHAR(SYSDATE,... HH24:MI:SS') for H2 database\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://consultforfree.blogspot.com/\",children:\"RandomThoughts\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://javascriptui.blogspot.com/\",children:\"Build your own Javascript UI framework\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://javascriptstolenideas.blogspot.com/\",children:\"Stolen idea from John Resig's simple inheritance\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://javascript-ui-list.blogspot.com/\",children:\"Javascript ui framework list\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://javascripttidbits.blogspot.com/\",children:\"Javascript playground\"})}),(0,i.jsxs)(t.li,{children:[(0,i.jsx)(t.a,{href:\"http://jsframeworkopinion.blogspot.com/\",children:\"Javascript frameworks opinions\"}),\" Ah! old opinion, but I think react is pretty good framework now, followed by viewjs angular. I still think something simple that can be added to any website for minimal interactivity is still worthwhile to keep building. May be alpinejs or knockoutjs can fill this spot. May be the string template engine within vanilla javascript can be improved to .\"]}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://inside-future.blogspot.com/\",children:\"Future...\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://cloudcomputing-hadoop.blogspot.com/\",children:\"Hadoop\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://classreloadingwebapp.blogspot.com/\",children:\"Class Reloading Webapp\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://expression-parser.blogspot.com/\",children:\"Boolean expression compiler\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://hibernateinafile.blogspot.com/\",children:\"Java: Hibernate in one File\"})}),(0,i.jsx)(t.li,{children:(0,i.jsx)(t.a,{href:\"http://struts2-custom-result-class.blogspot.com/\",children:\"struts2 action return arbritrary result class\"})})]})}function p(e={}){let{wrapper:t}=e.components||{};return t?(0,i.jsx)(t,{...e,children:(0,i.jsx)(h,{...e})}):h(e)}return w(y);})();\n;return Component;"
+  },
+  "_id": "blog/blogspot-articles.mdx",
+  "_raw": {
+    "sourceFilePath": "blog/blogspot-articles.mdx",
+    "sourceFileName": "blogspot-articles.mdx",
+    "sourceFileDir": "blog",
+    "contentType": "mdx",
+    "flattenedPath": "blog/blogspot-articles"
+  },
+  "type": "Blog",
+  "readingTime": {
+    "text": "1 min read",
+    "minutes": 0.7,
+    "time": 42000,
+    "words": 140
+  },
+  "slug": "blogspot-articles",
+  "path": "blog/blogspot-articles",
+  "filePath": "blog/blogspot-articles.mdx",
+  "toc": [],
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Old blogs from blogspot",
+    "datePublished": "+020213-06-06T04:00:00.000Z",
+    "dateModified": "+020213-06-06T04:00:00.000Z",
+    "description": "A list of old blogspot articles\r",
+    "image": "/static/images/twitter-card.png",
+    "url": "https://samarjitsamanta.com/blog/blogspot-articles"
+  }
+}

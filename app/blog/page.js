@@ -2,10 +2,11 @@
 import { useState } from "react";
 import { allBlogs } from 'contentlayer/generated'
 import ListLayout from "@/layouts/ListLayoutWithTags";
+import { sortPosts } from "pliny/utils/contentlayer";
 
 export default function Page() {
     const [apiResp, setApiResp] =  useState();
-    const posts = allBlogs.sort((a, b) => new Date(b.date) - new Date(a.date));
+    const posts = sortPosts(allBlogs); // .sort((a, b) => new Date(b.date) - new Date(a.date));
     const initialDisplayPosts = allBlogs.slice(0, 5);
     const pagination = {
         currentPage: 1,

@@ -14,6 +14,11 @@ export default function Page() {
                 <div className="container py-12">
                     <div className="card flex gap-4 flex-col justify-between">
                         <div className="card-body">
+                            <h2 className="card-title mb-3 text-2xl font-bold leading-8 tracking-tight">Json as Table viewer</h2>
+                            <p className="card-text">This is an utility to view JSON as table and each nested array will become a nested table. The nested tables are collapsed by default</p>
+                            <a href="/jsonastable" className="text-base font-medium leading-6 text-primary-500 hover:text-primary-600 dark:hover:text-primary-400" >Launch &rarr;</a>
+                        </div> 
+                        <div className="card-body">
                             <h2 className="card-title mb-3 text-2xl font-bold leading-8 tracking-tight">Json Viewer</h2>
                             <p className="card-text">This is a JSON tree viewer with preview of folded items, which is kind of nice to see few elements without expanding</p>
                             <a href="/jsonview.html" className="text-base font-medium leading-6 text-primary-500 hover:text-primary-600 dark:hover:text-primary-400" >Launch &rarr;</a>

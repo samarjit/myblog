@@ -1,0 +1,11 @@
+td {
+  border: 1px solid #ccc;
+  vertical-align: top;
+  text-align: left;
+}
+th {
+  border: 1px solid #ccc;
+  vertical-align: top;
+  padding: 0 2px;
+  text-align: left;
+}
