@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import './JsonViewer.css';
 
+export const metadata = genPageMetadata({ title: 'Json As Table' })
+
 function JsonViewer() {
   const [jsonData, setJsonData] = useState({});
   const [toggleState, setToggleState] = useState({});

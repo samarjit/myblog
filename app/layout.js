@@ -106,13 +106,13 @@ export default function RootLayout({ children }) {
       <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000" />
       <body  className="bg-white pl-[calc(100vw-100%)] text-black antialiased dark:bg-gray-950 dark:text-white" >
       <Analytics analyticsConfig={siteMetadata.analytics} />
-        <SectionContainer>
-          <SearchProvider searchConfig={siteMetadata.search}>
-            <Header />
-            <main className="mb-auto">{children}</main>
-          </SearchProvider>
-          <Footer />
-        </SectionContainer>
+      <SectionContainer>
+        <SearchProvider searchConfig={siteMetadata.search}>
+          <Header />
+          <main className="mb-auto">{children}</main>
+        </SearchProvider>
+        <Footer />
+      </SectionContainer>
       </body>
     </html>
   );
