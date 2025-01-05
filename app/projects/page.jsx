@@ -33,6 +33,11 @@ export default function Page() {
                             <p className="card-text">Utility to flatten json arrays into tabular(CSV) structure. The columns are csv json-paths. Also the schema is shown. Its useful to serialize random json to csv and back to json.</p>
                             <a href="/json2csv.html" className="text-base font-medium leading-6 text-primary-500 hover:text-primary-600 dark:hover:text-primary-400" >Launch &rarr;</a>
                         </div>
+                        <div className="card-body">
+                            <h2 className="card-title mb-3 text-2xl font-bold leading-8 tracking-tight">Json to CSV</h2>
+                            <p className="card-text">Datasource Form is an old almost vanilla javascript project from 2013 where datadriven datasources can be connected to forms and tables, tables can be filtered using table columns filters. The forms can be used to update the datasource which will reflect in table. Any kind of schema json or array datasource can be used to view in table and edit in forms. More details can be found in this demo page.</p>
+                            <a href="https://samarjit.github.io/DatasourceForm/index.html" className="text-base font-medium leading-6 text-primary-500 hover:text-primary-600 dark:hover:text-primary-400" >Launch &rarr;</a>
+                        </div>
                     </div>
                 </div>
             </div>

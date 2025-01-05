@@ -1,0 +1,43 @@
+{
+  "title": "Ask My Medic | Cancer, radiation, onocology",
+  "date": "2025-01-05T00:00:00.000Z",
+  "tags": [
+    "Cancer",
+    "radiation",
+    "onocology"
+  ],
+  "summary": "Writing this on behalf of a friend of Santanu, who is reachable for seeking cancer related opinions or guidance\r",
+  "body": {
+    "raw": "\r\n![Santanu](http://www.askmymedic.com/Ask%20my%20medic_files/santanu.png)\r\n\r\nSantanu Samanta, MD is a Radiation Oncologist and Assistant Professor at the University of Arkansas for Medical Sciences, Little Rock, and the UAMS- Baptist Health, North Little Rock. He treats patients with head and neck and gynecological cancer with advanced treatment modalities and performs brachytherapy procedures for patients with gynecological cancers. His expertise includes treatment with proton therapy for head and neckï¿½skull base cancers, re-radiation treatments, and a variety of other cancers.\r\n\r\nDr. Samanta joined the UAMS team after completing a residency in Radiation Oncology at the University of Maryland, and Maryland Proton Treatment Center. Before this residency training, he also completed a residency training in radiation oncology at CMC Vellore, India.\r\n\r\nDr. Samanta received several academic research and travel grant awards during his residency training including the 2022 Radiological Society of North America (RSNA) Roentgen Resident/ Fellow award for outstanding research in 2022. He also served as the Chief resident of Radiation Oncology, at the University of Maryland from 2020-2021.\r\n\r\nOutside of medicine, Dr. Samanta enjoys traveling, playing soccer, cricket, and cooking.\r\n\r\nHere is a very basic website - [Ask My Medic website](http://www.askmymedic.com/index.html).\r\nMore will get added including scheduling appointment options. But for now reach out to whatsapp or email provided below.\r\n\r\n\r\n<img src=\"/images/whatsapp.svg\" />  <a href=\"https://wa.me/12407600433\">+1 (240) 760 0433</a>\r\n![email](/images/mail.svg) docsantanu@gmail.com\r\n",
+    "code": "var Component=(()=>{var h=Object.create;var r=Object.defineProperty;var g=Object.getOwnPropertyDescriptor;var p=Object.getOwnPropertyNames;var f=Object.getPrototypeOf,y=Object.prototype.hasOwnProperty;var u=(a,e)=>()=>(e||a((e={exports:{}}).exports,e),e.exports),w=(a,e)=>{for(var t in e)r(a,t,{get:e[t],enumerable:!0})},c=(a,e,t,o)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let i of p(e))!y.call(a,i)&&i!==t&&r(a,i,{get:()=>e[i],enumerable:!(o=g(e,i))||o.enumerable});return a};var v=(a,e,t)=>(t=a!=null?h(f(a)):{},c(e||!a||!a.__esModule?r(t,\"default\",{value:a,enumerable:!0}):t,a)),M=a=>c(r({},\"__esModule\",{value:!0}),a);var d=u((R,s)=>{s.exports=_jsx_runtime});var S={};w(S,{default:()=>m,frontmatter:()=>k});var n=v(d()),k={title:\"Ask My Medic | Cancer, radiation, onocology\",date:\"2025-01-05\",tags:[\"Cancer\",\"radiation\",\"onocology\"],summary:\"Writing this on behalf of a friend of Santanu, who is reachable for seeking cancer related opinions or guidance\"};function l(a){let e={a:\"a\",div:\"div\",img:\"img\",p:\"p\",...a.components},{Image:t}=e;return t||x(\"Image\",!0),(0,n.jsxs)(n.Fragment,{children:[(0,n.jsx)(e.p,{children:(0,n.jsx)(e.img,{alt:\"Santanu\",src:\"http://www.askmymedic.com/Ask%20my%20medic_files/santanu.png\"})}),(0,n.jsx)(e.p,{children:\"Santanu Samanta, MD is a Radiation Oncologist and Assistant Professor at the University of Arkansas for Medical Sciences, Little Rock, and the UAMS- Baptist Health, North Little Rock. He treats patients with head and neck and gynecological cancer with advanced treatment modalities and performs brachytherapy procedures for patients with gynecological cancers. His expertise includes treatment with proton therapy for head and neck\\xEF\\xBF\\xBDskull base cancers, re-radiation treatments, and a variety of other cancers.\"}),(0,n.jsx)(e.p,{children:\"Dr. Samanta joined the UAMS team after completing a residency in Radiation Oncology at the University of Maryland, and Maryland Proton Treatment Center. Before this residency training, he also completed a residency training in radiation oncology at CMC Vellore, India.\"}),(0,n.jsx)(e.p,{children:\"Dr. Samanta received several academic research and travel grant awards during his residency training including the 2022 Radiological Society of North America (RSNA) Roentgen Resident/ Fellow award for outstanding research in 2022. He also served as the Chief resident of Radiation Oncology, at the University of Maryland from 2020-2021.\"}),(0,n.jsx)(e.p,{children:\"Outside of medicine, Dr. Samanta enjoys traveling, playing soccer, cricket, and cooking.\"}),(0,n.jsxs)(e.p,{children:[\"Here is a very basic website - \",(0,n.jsx)(e.a,{href:\"http://www.askmymedic.com/index.html\",children:\"Ask My Medic website\"}),\". More will get added including scheduling appointment options. But for now reach out to whatsapp or email provided below.\"]}),(0,n.jsxs)(e.div,{children:[(0,n.jsx)(\"img\",{src:\"/images/whatsapp.svg\"}),(0,n.jsx)(\"a\",{href:\"https://wa.me/12407600433\",children:\"+1 (240) 760 0433\"}),\" \",(0,n.jsx)(t,{alt:\"email\",src:\"/images/mail.svg\",width:\"16\",height:\"16\"}),\" \",(0,n.jsx)(e.a,{href:\"mailto:docsantanu@gmail.com\",children:\"docsantanu@gmail.com\"})]})]})}function m(a={}){let{wrapper:e}=a.components||{};return e?(0,n.jsx)(e,{...a,children:(0,n.jsx)(l,{...a})}):l(a)}function x(a,e){throw new Error(\"Expected \"+(e?\"component\":\"object\")+\" `\"+a+\"` to be defined: you likely forgot to import, pass, or provide it.\")}return M(S);})();\n;return Component;"
+  },
+  "_id": "blog/ask-my-medic.mdx",
+  "_raw": {
+    "sourceFilePath": "blog/ask-my-medic.mdx",
+    "sourceFileName": "ask-my-medic.mdx",
+    "sourceFileDir": "blog",
+    "contentType": "mdx",
+    "flattenedPath": "blog/ask-my-medic"
+  },
+  "type": "Blog",
+  "readingTime": {
+    "text": "2 min read",
+    "minutes": 1.07,
+    "time": 64200,
+    "words": 214
+  },
+  "slug": "ask-my-medic",
+  "path": "blog/ask-my-medic",
+  "filePath": "blog/ask-my-medic.mdx",
+  "toc": [],
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Ask My Medic | Cancer, radiation, onocology",
+    "datePublished": "2025-01-05T00:00:00.000Z",
+    "dateModified": "2025-01-05T00:00:00.000Z",
+    "description": "Writing this on behalf of a friend of Santanu, who is reachable for seeking cancer related opinions or guidance\r",
+    "image": "/static/images/twitter-card.png",
+    "url": "https://samarjitsamanta.com/blog/ask-my-medic"
+  }
+}

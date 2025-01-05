@@ -1,12 +1,16 @@
 'use client'
 import React, { useEffect, useState } from 'react';
 import './JsonViewer.css';
-
-export const metadata = genPageMetadata({ title: 'Json As Table' })
+import {GA, logEvent} from 'pliny/analytics/GoogleAnalytics';
+// export const metadata = genPageMetadata({ title: 'Json As Table' }) cannot export since this is client only
 
 function JsonViewer() {
   const [jsonData, setJsonData] = useState({});
   const [toggleState, setToggleState] = useState({});
+  useEffect(() => {
+    document.title = 'Json As Table';
+    logEvent('page_view',  'project', 'JsonAsTable', 'page accessed');
+  }, []);
   // Get all unique keys from all objects in the array
   const getUniqueKeys = (array) => {
     const allKeys = array.reduce((keys, item) => {
