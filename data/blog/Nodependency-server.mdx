@@ -1,0 +1,566 @@
+---
+title: No dependency server
+date: 2025-01-27
+tags: ['nodejs','react', 'nobuildtool','nodependency','koa-router-ajv-swggergen']
+summary: Lets no dependency no buildtools server and backend using plain nodejs
+---
+
+In corporate network its difficult to share small utilities among colleagues. Especially when they require to install nodejs and all dependencies to run a trivial server and rudimentary ui. In our corporate firewall all node packages are blocked and even if its possible to download some of them from corporate proxy there are lot of them which are blocked due to open vulnerabilities.
+So I decided to build this little server, and I can ask someone to just copy paste this code and along with it some actual functionality to run locally. My usecase is to run mock apis, and some log parser server which has ui and backend. In future I want to add large json file visualizer.
+
+Idea is to not having to run any build tools nor even npm install. Just plain unzip nodejs software, and copy paste the below source to get a running server in the fastest possible way.
+But it does support 
+
+Here is a simple http server which does not require any dependency to be installed. 
+
+### Features
+
+1) koa style router api
+2) supports openapi spec *derivation* and input request schema *validation* like [koa-router-ajv-swaggergen](https://www.npmjs.com/package/koa-router-ajv-swaggergen) style schema json middleware is supported.
+3) Swagger UI integration to view openapi and execute APIs to test
+4) static file server
+5) supports koa style middleware
+6) supports koa style handler.
+
+Koa style handler
+```javascript
+router.get('/api/no-schema', (ctx) => {
+  const { req, res } = ctx;
+  ctx.body = { message: 'This is a route with no schema' };
+});
+```
+or another syntax with expressjs style `res.json`,
+```javascript
+router.get('/api/no-schema', (ctx) => {
+    const { req, res } = ctx;
+    res.json({ message: 'This is a route with no schema' });
+});
+```
+
+
+It will be trivial to implement express style handler. Just look into the line in the source below, and modify from here.
+```
+ // Call the registered handler
+ await handler(context);
+```
+
+## Play with live stackblitz example
+
+You can add a route or edit below to get a feel of how this router works.
+<iframe width="100%"  height="600px" src="https://stackblitz.com/edit/stackblitz-starters-ajqjavj5?embed=1&file=index.js"></iframe>
+
+## nodeps-server.js
+_Complete source file without any dependency_
+
+```javascript
+// run `node index.js` in the terminal
+
+import http from 'http';
+import url, { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs';
+
+// Define a simple router with OpenAPI schema support
+const router = {
+  routes: {},
+  openApiSchemas: {},
+  staticDir: null,
+  // Register a GET route
+  get(pathName, schemaOrHandler, handler = null) {
+    this.registerRoute('GET', pathName, schemaOrHandler, handler);
+  },
+
+  // Register a POST route
+  post(pathName, schemaOrHandler, handler = null) {
+    this.registerRoute('POST', pathName, schemaOrHandler, handler);
+  },
+
+  // Register a generic route
+  registerRoute(method, pathName, schemaOrHandler, handler) {
+    const schema = handler ? schemaOrHandler : null;
+    handler = handler || schemaOrHandler;
+
+    const key = `${method.toUpperCase()} ${pathName}`;
+    this.routes[key] = { handler, schema };
+
+    // Add schema to OpenAPI if provided
+    if (schema) {
+      this.openApiSchemas[key] = {
+        method,
+        pathName,
+        schema,
+      };
+    }
+  },
+  // Set static directory
+  serveStatic(dir) {
+    this.staticDir = dir;
+  },
+  // Handle incoming requests
+  async handle(req, res) {
+    const parsedUrl = url.parse(req.url, true);
+    const pathName = parsedUrl.pathname;
+    const method = req.method.toUpperCase();
+    const key = `${method} ${pathName}`;
+    const route = this.routes[key];
+
+    // Enhance the response object with a res.json() method
+    res.json = (
+      data,
+      statusCode = 200,
+      headers = { 'Content-Type': 'application/json' }
+    ) => {
+      res.writeHead(statusCode, headers);
+      res.end(JSON.stringify(data));
+    };
+
+    if (route) {
+      const { handler, schema } = route;
+
+      // Build context object
+      const context = {
+        req: {
+          ...req,
+          query: parsedUrl.query,
+          params: {}, // Stub for params (extendable with param matching)
+          body: {},
+        },
+        res,
+      };
+
+      try {
+        context.req.body = await this.parseBody(req); // Parse request body
+
+        // Validate request against schemas if schema is provided
+        if (schema) {
+          const errors = this.validateRequest(schema, context.req);
+          if (errors.length > 0) {
+            return res.json(
+              { error: 'Validation failed', details: errors },
+              400
+            );
+          }
+        }
+
+        // Call the registered handler
+        await handler(context);
+        if (context.body) {
+          // Handler like koajs
+          let resBody = context.body;
+          if (context.status === undefined) {
+            context.status = 200;
+          }
+
+          if (context.type === undefined) {
+            res.setHeader('Content-Type', 'application/json');
+            resBody = JSON.stringify(context.body);
+          } else {
+            res.setHeader('Content-Type', context.type);
+          }
+
+          res.writeHead(context.status, res.getHeaders());
+          res.end(resBody);
+        }
+      } catch (err) {
+        res.json({ error: 'Invalid request body' + err.message }, 400);
+      }
+    } else if (pathName === '/swagger') {
+      // Return OpenAPI spec
+      res.json(this.generateOpenApiSpec());
+    } else if (pathName.startsWith('/swagger-ui')) {
+      this.serveSwaggerUi(req, res, pathName);
+    } else if (pathName.startsWith('/public')) {
+      // Serve static files
+      this.serveStaticFile(req, res, pathName);
+    } else {
+      res.json({ error: 'Route not found' }, 404);
+    }
+  },
+
+  // Parse the request body
+  parseBody(req) {
+    return new Promise((resolve, reject) => {
+      let body = '';
+      req.on('data', (chunk) => {
+        body += chunk.toString();
+      });
+      req.on('end', () => {
+        if (body) {
+          try {
+            resolve(JSON.parse(body)); // Parse JSON body
+          } catch (err) {
+            reject(err); // Invalid JSON
+          }
+        } else {
+          resolve({}); // Empty body
+        }
+      });
+    });
+  },
+
+  // Validate request parts against schemas
+  validateRequest(schema, req) {
+    const errors = [];
+    if (schema.body && !this.validateSchema(schema.body, req.body)) {
+      errors.push({ part: 'body', error: 'Invalid body' });
+    }
+    if (
+      schema.querystring &&
+      !this.validateSchema(schema.querystring, req.query)
+    ) {
+      errors.push({ part: 'querystring', error: 'Invalid querystring' });
+    }
+    if (schema.params && !this.validateSchema(schema.params, req.params)) {
+      errors.push({ part: 'params', error: 'Invalid params' });
+    }
+    if (schema.headers && !this.validateSchema(schema.headers, req.headers)) {
+      errors.push({ part: 'headers', error: 'Invalid headers' });
+    }
+    return errors;
+  },
+
+  // Basic JSON schema validation
+  validateSchema(schema, data) {
+    try {
+      const keys = Object.keys(schema.properties || {});
+      for (const key of keys) {
+        const required = schema.required?.includes(key);
+        const type = schema.properties[key]?.type;
+
+        if (required && !(key in data)) {
+          return false; // Missing required key
+        }
+
+        if (type && typeof data[key] !== type) {
+          return false; // Type mismatch
+        }
+      }
+      return true; // Validation passed
+    } catch (err) {
+      return false; // Catch unexpected validation issues
+    }
+  },
+
+  // Generate OpenAPI spec
+  generateOpenApiSpec() {
+    const paths = {};
+    for (const [key, { method, pathName, schema }] of Object.entries(
+      this.openApiSchemas
+    )) {
+      paths[pathName] = paths[pathName] || {};
+      paths[pathName][method.toLowerCase()] = {
+        summary: `Handler for ${method} ${pathName}`,
+        parameters: [],
+        responses: {
+          200: { description: 'Successful response' },
+        },
+        ...(schema
+          ? {
+              requestBody: schema.body && {
+                content: {
+                  'application/json': { schema: schema.body },
+                },
+              },
+              parameters: [
+                ...(schema.querystring
+                  ? !schema.querystring.type
+                    ? Object.entries(schema.querystring).map(([k, v]) => ({
+                        in: 'query',
+                        name: k,
+                        schema: v,
+                      }))
+                    : schema.querystring.type === 'object'
+                    ? Object.entries(schema.querystring.properties).map(
+                        ([k, v]) => ({
+                          in: 'query',
+                          name: k,
+                          schema: v,
+                        })
+                      )
+                    : []
+                  : []),
+                ...(schema.headers
+                  ? !schema.headers.type
+                    ? Object.entries(schema.headers).map(([k, v]) => ({
+                        in: 'query',
+                        name: k,
+                        schema: v,
+                      }))
+                    : schema.headers.type === 'object'
+                    ? Object.entries(schema.headers.properties).map(
+                        ([k, v]) => ({
+                          in: 'query',
+                          name: k,
+                          schema: v,
+                        })
+                      )
+                    : []
+                  : []),
+                ...(schema.params
+                  ? !schema.params.type
+                    ? Object.entries(schema.params).map(([k, v]) => ({
+                        in: 'query',
+                        name: k,
+                        schema: v,
+                      }))
+                    : schema.params.type === 'object'
+                    ? Object.entries(schema.params.properties).map(
+                        ([k, v]) => ({
+                          in: 'query',
+                          name: k,
+                          schema: v,
+                        })
+                      )
+                    : []
+                  : []),
+              ],
+            }
+          : {}),
+      };
+    }
+    return {
+      openapi: '3.0.0',
+      info: { title: 'API Documentation', version: '1.0.0' },
+      paths,
+    };
+  },
+
+  // Serve static files
+  serveStaticFile(req, res, pathName) {
+    const filePath = path.join(this.staticDir, pathName);
+
+    // Check if file exists
+    fs.access(filePath, fs.constants.F_OK, (err) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('404 Not Found');
+        return;
+      }
+
+      // Serve the file
+      fs.readFile(filePath, (err, content) => {
+        if (err) {
+          res.writeHead(500, { 'Content-Type': 'text/plain' });
+          res.end('500 Internal Server Error');
+          return;
+        }
+
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeType = this.getMimeType(ext);
+
+        res.writeHead(200, { 'Content-Type': mimeType });
+        res.end(content);
+      });
+    });
+  },
+  // Get MIME type for static files
+  getMimeType(ext) {
+    const mimeTypes = {
+      '.html': 'text/html',
+      '.css': 'text/css',
+      '.js': 'application/javascript',
+      '.json': 'application/json',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.gif': 'image/gif',
+      '.svg': 'image/svg+xml',
+      '.ico': 'image/x-icon',
+      '.txt': 'text/plain',
+    };
+    return mimeTypes[ext] || 'application/octet-stream';
+  },
+};
+
+// Define example schemas
+const getExampleSchema = {
+  querystring: {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+    },
+    required: ['name'],
+  },
+};
+
+const postExampleSchema = {
+  body: {
+    type: 'object',
+    properties: {
+      name: { type: 'string' },
+      age: { type: 'number' },
+    },
+    required: ['name'],
+  },
+};
+
+router.get('/swagger-ui', (ctx) => {
+  ctx.body = `<!DOCTYPE html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="description" content="SwaggerUI" />
+      <title>SwaggerUI</title>
+      <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css" />
+    </head>
+    <body>
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-bundle.js" crossorigin></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui-standalone-preset.js" crossorigin></script>
+    <script>
+      window.onload = () => {
+        window.ui = SwaggerUIBundle({
+          url: '/swagger',
+          dom_id: '#swagger-ui',
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIStandalonePreset
+          ],
+          layout: "StandaloneLayout",
+        });
+      };
+    </script>
+    </body>
+  </html>`;
+  ctx.type = 'text/html';
+});
+
+router.get('/swagger-initializer.js', (ctx) => {
+  ctx.type = 'application/javascript';
+  ctx.body =
+    //fs.readFileSync(require.resolve("swagger-ui-dist/swagger-initializer.js")); //  fs.createReadStream(`${swaggerUiAssetPath}\\swagger-ui-standalone-preset.js`);
+    `window.ui = SwaggerUIBundle({
+      url: "swagger",
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [
+        SwaggerUIBundle.presets.apis,
+        SwaggerUIStandalonePreset
+      ],
+      plugins: [
+        SwaggerUIBundle.plugins.DownloadUrl
+      ],
+      layout: "StandaloneLayout"
+    });`;
+});
+
+// Add routes with optional schemas
+router.get('/api/get-example', getExampleSchema, (context) => {
+  const { req, res } = context; // Use req.query, req.body, req.params
+  res.json({
+    message: 'This is a GET API response',
+    query: req.query, // Echo query parameters
+  });
+});
+
+router.post('/api/post-example', postExampleSchema, (context) => {
+  const { req, res } = context; // Use req.body
+  res.json({
+    message: 'This is a POST API response',
+    data: req.body, // Echo the parsed body
+  });
+});
+
+// Add a route without schema
+router.get('/api/no-schema', (context) => {
+  const { req, res } = context;
+  context.body = { message: 'This is a route with no schema' };
+  // res.json({ message: 'This is a route with no schema' });
+});
+
+// Set static directory
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+router.serveStatic(__dirname);
+
+// Create the server
+const server = http.createServer((req, res) => {
+  router.handle(req, res); // Delegate request handling to the router
+});
+
+// Start the server
+const PORT = 3000;
+server.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+  console.log('Visit http://localhost:${PORT}/swagger for OpenAPI spec');
+  console.log('Visit http://localhost:${PORT}/swagger-ui for Swagger UI viewer of openapi');
+  console.log(`Serving static files from ${router.staticDir}`);
+});
+
+```
+You can also create a static directory and put htmls in it to be served. 
+
+create directory /public/, add some html like nodeps.html. 
+Again the below sample here does not install react using buildtools, no webpack, no vite. Just static html, but here is the template to run react.
+The following is reactjs v19. Ofcourse React18 is easier to run as it exposes variable `React` in browser global, but with react19 that is going away, and we cannot use any cdn like we used to.
+There are multiple other options to run static html with nobuild tools like vuejs, alpinejs, petite-vue, [preact](https://preactjs.com/guide/v10/getting-started#no-build-tools-route).
+
+/public/transformer-example.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>No backend node_modules based ui</title>
+  </head>
+  <body>
+    <!-- some HTML -->
+    <div id="the_root_of_your_reactJS_component"></div>
+    <!-- some other HTML -->
+
+    <script src="https://unpkg.com/@babel/standalone@7.12.4/babel.min.js"></script>
+    <!-- babel is required in order to parse JSX -->
+
+    <!-- <script src="https://unpkg.com/react@19/umd/react.development.js"></script> -->
+    <!-- import react.js -->
+
+    <!-- <script src="https://unpkg.com/react-dom@19/umd/react-dom.development.js"> </script> -->
+    <!-- import react-dom.js -->
+
+    <script type="module">
+      import React from 'https://esm.sh/react@19.0.0-beta-04b058868c-20240508/?dev';
+      import ReactDOMClient from 'https://esm.sh/react-dom@19.0.0-beta-04b058868c-20240508/client/?dev';
+      console.log(ReactDOMClient.version);
+      window.React = React;
+      window.ReactDOMClient = ReactDOMClient;
+    </script>
+
+    <script type="text/babel">
+      function App() {
+        return (
+          <div>
+            <h1>Hello, React!</h1>
+          </div>
+        );
+      }
+      console.log(React);
+      ReactDOMClient.createRoot(
+        document.getElementById('the_root_of_your_reactJS_component')
+      ).render(<App />);
+      // ReactDOM.render(<App />, );
+    </script>
+    <!-- import your JS and add - type="text/babel" - otherwise babel wont parse it -->
+    <hr />
+  </body>
+</html>
+```
+
+Some reference images in case the stackblitz example above does not work for anyone.
+
+Navigate to http://localhost:3000/swagger-ui to see the below openapi rendered in ui. This UI requires dependency, may be I can get rid of this too.
+![swagger ui](/images/no-dependency-server/swagger.png)
+
+Navigate to http://localhost:3000/swagger to see the openapi doc which is auto generated in json format.
+![openapi](/images/no-dependency-server/openapi.png)
+
+Several things are lacking like implementation of all the HTTP methods PUT,PATCH,DELETE, but the method registerRoute can still be used to achieve it in current code, or its trivial to write wrapper methods for these HTTP verbs. 
+One more is the full json schema validation, its quite a big task, there are libraries like ajv for doing that, and that is exactly I did in my library koa-router-ajv-swggergen. 
+But basic number or text and required validations can be implemented without full ajv which is what I wanted to achieve here.
+
+## Conclusion
+I do not intend to create yet another library (npm) for nodejs server with router and middlewares, that would defeat the whole purpose of creating a no-dependency server. If you want batteries included server I am sure you can find some eg. Hono.
+I might in future create a gist of this codebase so that it can be shared as it is, or a github project just so that someone can copy and paste to get going.
+
+Feel free to add comments and what do you think about it or what enhancements will you like to add to it. If you are interested further to look some production grade micro servers look at zeit/vercel micro nodejs server.
+But I like the koajs syntax.

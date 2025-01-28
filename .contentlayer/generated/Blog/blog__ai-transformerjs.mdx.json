@@ -1,0 +1,43 @@
+{
+  "title": "Building with transformer.js",
+  "date": "2025-01-27T00:00:00.000Z",
+  "tags": [
+    "Ai",
+    "transformerjs",
+    "image-recognition"
+  ],
+  "summary": "Building sample image recognition with transformerjs\r",
+  "body": {
+    "raw": "\r\nTransformerjs is a library used to run pretrained models in browser. This library loads the entire LLM model into browser memory and runs it. It supports simple chat application like chat-gpt. \r\nIt supports image depth analysis, tect to speech, even speech recognition. If the normal chat version can support 'tools api' then we can easily build something like google home running entirely in browser.\r\nBut here are my simple examples showing sentiment analysis and image-recognition.\r\n\r\nLink to running app [transformerjs example](/transformer-example.html)\r\n",
+    "code": "var Component=(()=>{var h=Object.create;var s=Object.defineProperty;var g=Object.getOwnPropertyDescriptor;var u=Object.getOwnPropertyNames;var d=Object.getPrototypeOf,f=Object.prototype.hasOwnProperty;var x=(e,n)=>()=>(n||e((n={exports:{}}).exports,n),n.exports),j=(e,n)=>{for(var r in n)s(e,r,{get:n[r],enumerable:!0})},a=(e,n,r,o)=>{if(n&&typeof n==\"object\"||typeof n==\"function\")for(let i of u(n))!f.call(e,i)&&i!==r&&s(e,i,{get:()=>n[i],enumerable:!(o=g(n,i))||o.enumerable});return e};var y=(e,n,r)=>(r=e!=null?h(d(e)):{},a(n||!e||!e.__esModule?s(r,\"default\",{value:e,enumerable:!0}):r,e)),w=e=>a(s({},\"__esModule\",{value:!0}),e);var l=x((M,m)=>{m.exports=_jsx_runtime});var b={};j(b,{default:()=>c,frontmatter:()=>_});var t=y(l()),_={title:\"Building with transformer.js\",date:\"2025-01-27\",tags:[\"Ai\",\"transformerjs\",\"image-recognition\"],summary:\"Building sample image recognition with transformerjs\"};function p(e){let n={a:\"a\",p:\"p\",...e.components};return(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(n.p,{children:\"Transformerjs is a library used to run pretrained models in browser. This library loads the entire LLM model into browser memory and runs it. It supports simple chat application like chat-gpt. It supports image depth analysis, tect to speech, even speech recognition. If the normal chat version can support 'tools api' then we can easily build something like google home running entirely in browser. But here are my simple examples showing sentiment analysis and image-recognition.\"}),(0,t.jsxs)(n.p,{children:[\"Link to running app \",(0,t.jsx)(n.a,{href:\"/transformer-example.html\",children:\"transformerjs example\"})]})]})}function c(e={}){let{wrapper:n}=e.components||{};return n?(0,t.jsx)(n,{...e,children:(0,t.jsx)(p,{...e})}):p(e)}return w(b);})();\n;return Component;"
+  },
+  "_id": "blog/ai-transformerjs.mdx",
+  "_raw": {
+    "sourceFilePath": "blog/ai-transformerjs.mdx",
+    "sourceFileName": "ai-transformerjs.mdx",
+    "sourceFileDir": "blog",
+    "contentType": "mdx",
+    "flattenedPath": "blog/ai-transformerjs"
+  },
+  "type": "Blog",
+  "readingTime": {
+    "text": "1 min read",
+    "minutes": 0.405,
+    "time": 24300,
+    "words": 81
+  },
+  "slug": "ai-transformerjs",
+  "path": "blog/ai-transformerjs",
+  "filePath": "blog/ai-transformerjs.mdx",
+  "toc": [],
+  "structuredData": {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "headline": "Building with transformer.js",
+    "datePublished": "2025-01-27T00:00:00.000Z",
+    "dateModified": "2025-01-27T00:00:00.000Z",
+    "description": "Building sample image recognition with transformerjs\r",
+    "image": "/static/images/twitter-card.png",
+    "url": "https://samarjitsamanta.com/blog/ai-transformerjs"
+  }
+}

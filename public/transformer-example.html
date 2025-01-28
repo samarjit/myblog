@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No backend node_modules based ui</title>
+</head>
+<body>
+  <a href="javascript:history.back()">Back</a>  
+  <script type="module">
+    import { pipeline } from 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.0.2';
+
+    window.classifier = await pipeline('sentiment-analysis');
+    window.detector = await pipeline("object-detection", "Xenova/detr-resnet-50"); //"zero-shot-object-detection", "onnx-community/grounding-dino-tiny-ONNX"
+  </script>
+      <!-- some HTML -->
+  <div id="the_root_of_your_reactJS_component"></div>
+  <!-- some other HTML -->
+  
+  <script src="https://unpkg.com/@babel/standalone@7.12.4/babel.min.js"></script>
+  <!-- babel is required in order to parse JSX -->
+
+  <!-- <script src="https://unpkg.com/react@19/umd/react.development.js"></script> -->
+  <!-- import react.js -->
+
+  <!-- <script src="https://unpkg.com/react-dom@19/umd/react-dom.development.js"> </script> -->
+  <!-- import react-dom.js -->
+
+  <script type="module">
+      import React from "https://esm.sh/react@19.0.0-beta-04b058868c-20240508/?dev"
+      import ReactDOMClient from "https://esm.sh/react-dom@19.0.0-beta-04b058868c-20240508/client/?dev"
+      console.log(ReactDOMClient.version);
+      window.React = React;
+      window.ReactDOMClient = ReactDOMClient;
+  </script>
+ 
+  <script  type="text/babel"  >
+
+    // const React = require('react');
+    // const ReactDOM = require('react-dom');
+    function SentimentAnalysis() {
+      const [sentiment, setSentiment] = React.useState(null);
+      const [text, setText] = React.useState('');
+      const [loading, setLoading] = React.useState(false);
+
+      const analyze = async () => {
+        setLoading(true);
+        const result = await classifier(text);
+        setSentiment(result[0].label);
+        setLoading(false);
+      };
+
+      return (
+        <div>
+          <h1>Sentiment Analysis</h1>
+          <textarea value={text} onChange={(e) => setText(e.target.value)} />
+          <button onClick={analyze} disabled={loading}>
+            Analyze
+          </button>
+          {loading && <p>Loading...</p>}
+          {sentiment && <p>Sentiment: {sentiment}</p>}
+        </div>
+      );
+    }
+
+    function ImageRecognition(){
+      const [imageSrc, setImageSrc] = React.useState(null);
+      const [status, setStatus] = React.useState(null);
+      const [working, setWorking] = React.useState(false);
+      const [detectedImages, setDetectedImages] = React.useState([]);
+      async function gotPic (e) {
+        let file = e.target.files[0];
+        if(!file) return; 
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = async e => {
+          setImageSrc(e.target.result);
+          // await this.$nextTick();
+          setWorking(true);
+          setStatus( '<i>Analyzing image data...</i>');
+          let output = await window.detector(e.target.result, {
+            threshold: 0.5,
+            percentage: true,
+          });	
+
+          setWorking(false);
+          setDetectedImages(output);
+          setStatus(JSON.stringify(output, null, 2));
+          console.log(output)
+        }
+      }
+
+      async function capture() {
+        let videoElem = document.querySelector('video');
+        setWorking(true);
+        setStatus( '<i>Analyzing image data...</i>');
+
+        const stream = await navigator.mediaDevices.getUserMedia({video: true});
+        videoElem.onplaying = () => console.log("video playing stream:", videoElem.srcObject);
+        videoElem.srcObject = stream;
+
+        const [track] = stream.getVideoTracks();
+        const imageCapture = new ImageCapture(track);
+        const blob = await imageCapture.takePhoto()
+                .catch(err => console.error(err)); // It took a few seconds for me the camera to get ready
+
+        if(blob){
+        const imageUrl = URL.createObjectURL(blob);
+        setImageSrc(imageUrl);
+        console.log('image was captured');
+        } else {
+          console.log('image was not captured');
+        }
+
+        stream.getTracks().forEach(track => track.stop());
+        window.detector(URL.createObjectURL(blob), {
+          threshold: 0.5,
+          percentage: true,
+        }).then(output => {
+          setWorking(false);
+          setDetectedImages(output);
+          setStatus(JSON.stringify(output, null, 2));
+          console.log(output)
+        });
+      }
+      return (
+        <div>
+          <h1>Image Recognition</h1>
+          <input type="file" capture="environment" accept="image/*" onChange={gotPic} disabled={working} />
+          or Capture image.
+          <video autoplay muted playsinline></video>
+          <p>
+            Images captured: <span id="image_count">0</span>
+            <button id="capture" onClick={capture}>Capture</button>
+          </p>
+
+          <p>Image:</p>
+          <div className="container" style={{position: 'relative', width: '500px', height: '500px'}}>
+            {detectedImages.map((detectedImage, i) => (
+              <>
+              <div key={i+"1"} style={{
+                position: 'absolute',
+                color: detectedImage.score > 0.8 ? 'green' : 'red',
+                left: `${detectedImage.box.xmin * 100}%`,
+                top: `${detectedImage.box.ymin * 100}%`,
+              }}>{detectedImage.label}</div>
+              <div key={i} className="box" style={{
+                position: 'absolute',
+                border: `${'2px solid ' + (detectedImage.score > 0.8 ? 'green' : 'red')}`,
+                left: `${detectedImage.box.xmin * 100}%`,
+                top: `${detectedImage.box.ymin * 100}%`,
+                width: `${(detectedImage.box.xmax - detectedImage.box.xmin) * 100}%`,
+                height: `${(detectedImage.box.ymax - detectedImage.box.ymin ) * 100}%`,
+              }}></div>
+              </>
+            ))}
+
+          <img src={imageSrc} width="500px" height="500px"/>
+          </div>
+          Output: <pre>{status}</pre>
+        </div>
+      );
+    }
+    function App() {
+      return (
+        <div>
+          <h1>Hello, world!</h1>
+          <SentimentAnalysis /> <hr/>
+          <ImageRecognition />
+        </div>
+      );
+    }
+    console.log(React);
+    ReactDOMClient.createRoot(document.getElementById('the_root_of_your_reactJS_component')).render(<App />);
+    // ReactDOM.render(<App />, );
+
+  </script>
+  <!-- import your JS and add - type="text/babel" - otherwise babel wont parse it -->
+  <hr/>
+   
+
+  
+</body>
+</html>
