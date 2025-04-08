@@ -86,6 +86,7 @@
 			<div class="row">
 				<button type="button" ng-click="calculate()" class="btn btn-primary">calculate</button>
 				<div class="row"><label class="col-md-2">Years:</label><span ng-bind="years"></span></div>
+				<div class="row"><label class="col-md-2">Months:</label><span ng-bind="months"></span></div>
 				<div class="row"><label class="col-md-2">Days:</label><span ng-bind="days"></span></div>
 				<div class="row"><label class="col-md-2">Hours:</label><span ng-bind="hours"></span></div>
 				<div class="row"><label class="col-md-2">Mins:</label><span ng-bind="mins"></span></div>
@@ -138,11 +139,17 @@
 			$scope.months = monthDiff( stDt, endDt);
 
 		 	var millisecondsLeft = (endDt - stDt) % $scope.years;
-		 	if(stDt.getFullYear() < endDt.getFullYear())
-		 	stDt.setFullYear(endDt.getFullYear()); 
-		 	var monthsdiff = monthDiff( stDt, endDt);
-		 	stDt.setMonth(stDt.getMonth() + monthsdiff);
+		 	 
+		 	var monthsdiff = monthDiff( stDt, endDt)%12;
+		 	 
 		 	var days = endDt.getDate() - stDt.getDate();
+			if(days < 0){
+				monthsdiff = monthsdiff - 1;
+				var lastDay = new Date(stDt.getFullYear(), stDt.getMonth() + 1, 0);
+				days = lastDay.getDate() - stDt.getDate();
+				days += endDt.getDate();
+			}
+
 		 	$scope.total = Math.floor($scope.years) +" yrs, "+monthsdiff+ " mths, "+days+" days";
 		 	console.log(stDt);
 		 }
