@@ -93,7 +93,7 @@
   },
   {
     "title": "Old blogs from blogspot",
-    "date": "+020213-06-06T04:00:00.000Z",
+    "date": "+020213-06-06T05:00:00.000Z",
     "tags": [
       "blogspot",
       "javascript-frameworks",
@@ -129,8 +129,8 @@
       "@context": "https://schema.org",
       "@type": "BlogPosting",
       "headline": "Old blogs from blogspot",
-      "datePublished": "+020213-06-06T04:00:00.000Z",
-      "dateModified": "+020213-06-06T04:00:00.000Z",
+      "datePublished": "+020213-06-06T05:00:00.000Z",
+      "dateModified": "+020213-06-06T05:00:00.000Z",
       "description": "A list of old blogspot articles\r",
       "image": "/static/images/twitter-card.png",
       "url": "https://samarjitsamanta.com/blog/blogspot-articles"
